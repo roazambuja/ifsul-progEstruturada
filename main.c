@@ -28,17 +28,25 @@ int main (){
 	
 	printf("\n--------------------------------------------------------------------------------------------------------\n\n");
 	
-	float valor = simulaAumentoSemPIB(ptr_ano, salario[0], ptr_inpc);
+	float valor = simulaAumentoSemPIB(salario[0], ptr_inpc);
 	printf("Se o salario minimo nao tivesse aumento real e apenas cobrisse a inflacao, seu valor atual seria de R$ %.2f\n", valor);	
 	printf("- Diferenca de R$ %.2f do valor atual.\n\n", calculaDiferenca(salario[TAM-1], valor));
 	
+	printf("Calculando com a funcao recursiva: R$ %.2f\n\n", simulaAumentoSemPIBRecursivo(0, salario[0], ptr_inpc));
 	
-	valor = simulaAumentoComPIB(ptr_ano, salario[0], ptr_inpc, ptr_pib);
+	valor = simulaAumentoComPIB(salario[0], ptr_inpc, ptr_pib);
 	printf("Se o salario minimo tivesse aumento real considerando o INPC e o PIB, seu valor atual seria de R$ %.2f\n", valor);
 	printf("- Diferenca de R$ %.2f do valor atual.\n\n", calculaDiferenca(salario[TAM-1], valor));
+	
+	printf("\n--------------------------------------------------------------------------------------------------------\n\n");
 
-		
-
+	aumentoRealPorGoverno("fernando henrique", ptr_ano, ptr_inpc, ptr_salario);
+	aumentoRealPorGoverno("Lula", ptr_ano, ptr_inpc, ptr_salario);
+	aumentoRealPorGoverno("diLma", ptr_ano, ptr_inpc, ptr_salario);
+	aumentoRealPorGoverno("Temer", ptr_ano, ptr_inpc, ptr_salario);
+	aumentoRealPorGoverno("BOLSONARO", ptr_ano, ptr_inpc, ptr_salario);
+	aumentoRealPorGoverno("termer", ptr_ano, ptr_inpc, ptr_salario);
+	
     return 0;
 }
 

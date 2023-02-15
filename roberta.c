@@ -4,80 +4,107 @@
 
 #include "roberta.h"
 
-void exibeDados(int *ano, float *salario, float *inpc, float *pib){
-	printf("ANO   | SALARIO  |  INPC   | PIB\n");
+void exibeDados(int *ano, float *salario, float *inflacao, float *pib){
+	printf("ANO   | SALARIO  |  INFLACAO   | PIB\n");
 	int i;
 	for(i=0; i<TAM; i++){
-		printf("%d  | %07.2f  | %05.2f%%  | %05.2f%%\n", *(ano+i), *(salario+i), *(inpc+i), *(pib+i));
+		printf("%d  | %07.2f  | %05.2f%%      | %05.2f%%\n", *(ano+i), *(salario+i), *(inflacao+i), *(pib+i));
 	}
 }
 
-void exibeAumentos(int *ano, float *salario, float *inpc, float *pib) {
+void exibeAumentos(int *ano, float *salario, float *inflacao, float *pib) {
 	int i;
-	printf("ANO  | INPC (ANO ANTERIOR) | AUMENTO TOTAL | AUMENTO REAL\n");
+	printf("ANO  | INFLACAO (ANO ANTERIOR) | AUMENTO TOTAL | AUMENTO REAL\n");
 
 	for(i=1;i<TAM;i++) {
 		float aumento = aumentoTotal(*(salario+(i-1)), *(salario+i));
-		printf("%d | %05.2f%%              | %05.2f%%        | %05.2f%% \n", *(ano+i), *(inpc+(i-1)), aumento, calculaDiferenca(aumento, *(inpc+(i-1))));
+		printf("%d | %05.2f%%                  | %05.2f%%        | %05.2f%% \n", *(ano+i), *(inflacao+(i-1)), aumento, calculaDiferenca(aumento, *(inflacao+(i-1))));
 	}
 }
 
-float simulaAumentoSemPIB(float salario, float *inpc){	
+float simulaAumentoSemPIB(float salario, float *inflacao){	
 	int i;
 	for(i=0; i<TAM; i++){		
-		salario += calculaValorDoAumento(salario, *(inpc+i));
+		salario += calculaValorDoAumento(salario, *(inflacao+i));
 	}
 	return salario;
 }	
 
-float simulaAumentoSemPIBRecursivo(int i, float salario, float *inpc){	
-	float *ptr_inpc = inpc+i;
+float simulaAumentoSemPIBRecursivo(int i, float salario, float *inflacao){	
+	float *ptr_inflacao = inflacao+i;
 		
 	if (i == TAM-1){
 		return salario;
 	} else {
-		salario += calculaValorDoAumento(salario, *ptr_inpc);
-		return simulaAumentoSemPIBRecursivo(i+1, salario, inpc+0);
+		salario += calculaValorDoAumento(salario, *ptr_inflacao);
+		return simulaAumentoSemPIBRecursivo(i+1, salario, inflacao+0);
 	}
 }	
 
-float simulaAumentoComPIB(float salario, float *inpc, float *pib){	
+float simulaAumentoComPIB(float salario, float *inflacao, float *pib){	
 	int i;
 	for(i=0; i<TAM; i++){
-		salario += calculaValorDoAumento(salario, calculaAumento(i, *(inpc+i), *(pib+(i-1))));
+		salario += calculaValorDoAumento(salario, calculaAumento(i, *(inflacao+i), *(pib+(i-1))));
 	}
 	return salario;
 }
 
-void aumentoRealPorGoverno(char *nome, int *ano, float *inpc, float *salario) {
+void mostraSimulacoes(float *salario, float *inflacao, char *tipo, float *pib) {
+	float valor = simulaAumentoSemPIB(*(salario+0), inflacao);
+	printf("Se o salario minimo nao tivesse aumento real e apenas cobrisse a inflacao (%s), seu valor atual seria de R$ %.2f\n", tipo, valor);	
+	printf("- Diferenca de R$ %.2f do valor atual.\n", calculaDiferenca(*(salario+(TAM-1)), valor));
+	
+	printf("Calculando com a funcao recursiva: R$ %.2f\n", simulaAumentoSemPIBRecursivo(0, *(salario+0), inflacao));
+			
+	valor = simulaAumentoComPIB(*(salario+0), inflacao, pib);
+	printf("Se o salario minimo tivesse aumento real considerando o %s e o PIB, seu valor atual seria de R$ %.2f\n", tipo, valor);
+	printf("- Diferenca de R$ %.2f do valor atual.\n", calculaDiferenca(*(salario+(TAM-1)), valor));
+}
+
+void aumentoRealPorGoverno(char *nome, int *ano, float *inflacao, float *salario) {
 	char presidente[30];
 	strcpy(presidente, nome);
 	formataString(presidente);
 	
 	if(strcmp(presidente, "Fernando Henrique") == 0){
-		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(1996, 2002, ano, inpc, salario));
+		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(1996, 2002, ano, inflacao, salario));
 	} else if(strcmp(presidente, "Lula") == 0) {
-		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2003, 2010, ano, inpc, salario));
+		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2003, 2010, ano, inflacao, salario));
 	} else if (strcmp(presidente, "Dilma") == 0) {
-		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2011, 2016, ano, inpc, salario));
+		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2011, 2016, ano, inflacao, salario));
 	} else if (strcmp(presidente, "Temer") == 0) {
-		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2017, 2018, ano, inpc, salario));
+		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2017, 2018, ano, inflacao, salario));
 	} else if (strcmp(presidente, "Bolsonaro") == 0) {
-		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2019, 2022, ano, inpc, salario));
+		printf("No governo %s o percentual total de aumento real foi de %.2f%%\n", presidente, calculaAumentoRealPorPeriodo(2019, 2022, ano, inflacao, salario));
 	} else {
 		printf("O presidente informado nao foi encontrado.");
 	}
+}
+
+void leArquivo(float *vet, char *arquivo){
+	FILE *fp = fopen(arquivo, "r");
+	float x;
+	int i = 0;
+	if (fp == NULL) {
+		printf("Erro ao abrir o arquivo.");
+		return;
+	}
+	while (!feof(fp)) {
+		fscanf(fp, "%f\n", &*(vet+i));
+		i++;
+	}
+	fclose(fp);
 }
 
 float calculaValorDoAumento(float salario, float aumento){
 	return salario * aumento / 100;
 }
 
-float calculaAumento(int posicao, float inpc, float pib){
+float calculaAumento(int posicao, float inflacao, float pib){
 	if (posicao != 0 && pib > 0) {
-		return (inpc+pib);	
+		return (inflacao+pib);	
 	} else {
-		return inpc;
+		return inflacao;
 	}
 }
 
@@ -99,7 +126,7 @@ int retornaPosicao(int ano, int *vetAno) {
 	}
 }
 
-float calculaAumentoRealPorPeriodo(int anoInicial, int anoFinal, int *ano, float *inpc, float *salario){
+float calculaAumentoRealPorPeriodo(int anoInicial, int anoFinal, int *ano, float *inflacao, float *salario){
 	int inicio = retornaPosicao(anoInicial, ano);
 	int fim = retornaPosicao(anoFinal, ano);
 	
@@ -108,7 +135,7 @@ float calculaAumentoRealPorPeriodo(int anoInicial, int anoFinal, int *ano, float
 	int i;
 	for(i=inicio; i<=fim; i++){
 		aumento = aumentoTotal(*(salario+(i-1)), *(salario+i));
-		aumentoReal += calculaDiferenca(aumento, *(inpc+(i-1)));
+		aumentoReal += calculaDiferenca(aumento, *(inflacao+(i-1)));
 	}
 	return aumentoReal;
 }
@@ -144,3 +171,8 @@ void formataString(char * str){
     }      
     strcpy(str, formatada);
 }
+
+void separaConteudo(){
+	printf("\n--------------------------------------------------------------------------------------------------------\n\n");
+}
+
